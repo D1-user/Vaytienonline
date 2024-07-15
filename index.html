@@ -47,7 +47,8 @@
 
 <div class="container">
   <h2>Đăng ký vay tiền</h2>
-  <form id="loanForm">
+  <form id="loanForm" action="https://script.google.com/macros/s/AKfycbwXTBPnYT44LZvGK35E77HS8mrKPUJk9wt5GqcyIcaiPfe8J_5HMmGbdpIwWxLmhfDy/exec" method="POST">
+
     <div class="form-group">
       <label for="fullName" class="required">Họ và tên:</label>
       <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Nhập họ và tên" required>
@@ -68,8 +69,8 @@
       <label for="occupation" class="required">Nghề nghiệp:</label>
       <select class="form-control" id="occupation" name="occupation" required>
         <option value="">Chọn nghề nghiệp</option>
-        <option value="companyEmployee">Công ty hưởng lương</option>
-        <option value="selfEmployed">Công việc tự do - Tự kinh doanh</option>
+        <option value="Công ty hưởng lương">Công ty hưởng lương</option>
+        <option value="Công việc tự do - Tự kinh doanh">Công việc tự do - Tự kinh doanh</option>
       </select>
     </div>
     <div class="form-row">
@@ -89,11 +90,11 @@
     <div class="form-group">
       <label for="documents" class="required">Chứng từ có thể cung cấp:</label>
       <select class="form-control" id="documents" name="documents" multiple required>
-        <option value="paySlip">Sao kê lương hoặc phiếu lương</option>
-        <option value="vehicleRegistration">Cà vẹt xe</option>
-        <option value="electricityBill">Hóa đơn điện</option>
-        <option value="lifeInsurance">Bảo hiểm nhân thọ</option>
-        <option value="creditHistory">Có lịch sử từng vay tiền, từng mua đồ trả góp</option>
+        <option value="Sao kê lương hoặc phiếu lương">Sao kê lương hoặc phiếu lương</option>
+        <option value="Cà vẹt xe">Cà vẹt xe</option>
+        <option value="Hóa đơn điện">Hóa đơn điện</option>
+        <option value="Bảo hiểm nhân thọ">Bảo hiểm nhân thọ</option>
+        <option value="Có lịch sử từng vay tiền, từng mua đồ trả góp">Có lịch sử từng vay tiền, từng mua đồ trả góp</option>
       </select>
     </div>
     <div class="form-group">
@@ -132,14 +133,34 @@
   emailjs.init("B4PnFcbuvDgI2Ijd9");
   document.getElementById('loanForm').addEventListener('submit', function(event) {
     event.preventDefault();
+
+    var formData = new FormData(this);
+
+    // Gửi dữ liệu qua EmailJS
     emailjs.sendForm('service_9ga33jg', 'template_jbmr6vc', this)
       .then(function(response) {
         console.log('Email sent:', response);
-        $('#thankYouModal').modal('show');
-        document.getElementById('loanForm').reset();
+
+        // Sau khi gửi email thành công, gửi dữ liệu đến Google Sheets
+        fetch('https://script.google.com/macros/s/AKfycbwGKRUi7Vk2V6lg2A3HQWI3fB2_YnIJplsw5MbAfG4OgFG8DyeQUyBJD_OWZw9kGY5Q/exec', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.text())
+        .then(result => {
+          console.log(result); // In kết quả từ Google Script vào console log (để gỡ lỗi)
+
+          if (result === "Success") {
+            $('#thankYouModal').modal('show'); // Hiển thị modal thông báo thành công
+            document.getElementById('loanForm').reset(); // Reset form sau khi gửi thành công
+          } else {
+            alert('Đã xảy ra lỗi khi gửi dữ liệu vào Google Sheets. Vui lòng thử lại sau.'); // Hiển thị thông báo lỗi nếu không thành công
+          }
+        })
+        .catch(error => console.error('Error:', error)); // Xử lý lỗi khi gửi dữ liệu vào Google Sheets
       }, function(error) {
-        console.log('Email send error:', error);
-        alert('Đã xảy ra lỗi. Vui lòng thử lại sau.');
+        console.error('Email send error:', error);
+        alert('Đã xảy ra lỗi khi gửi email. Vui lòng thử lại sau.');
       });
   });
 </script>
